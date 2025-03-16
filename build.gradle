@@ -1,0 +1,92 @@
+plugins {
+  id "com.github.johnrengelman.shadow" version "7.1.2"
+  id "java"
+}
+
+// You can just issue "gradle" without "gradle build" because of this.
+defaultTasks 'build'
+
+version = '1.0.47'
+
+configurations.all {
+	resolutionStrategy.cacheDynamicVersionsFor 1, 'minutes'
+	resolutionStrategy.cacheChangingModulesFor 1, 'minutes'
+}
+
+repositories {
+	maven {
+		credentials {
+			username gradle.ext.repoUN
+			password gradle.ext.repoPW
+		}
+		url gradle.ext.urlFV
+	}
+
+	maven {
+		credentials {
+			username gradle.ext.repoUN
+			password gradle.ext.repoPW
+		}
+		url gradle.ext.urlTP
+	}
+
+	mavenCentral()
+}
+
+dependencies {
+	implementation 'com.fasterxml.jackson.core:jackson-core:2.18.3'
+	implementation 'com.fasterxml.jackson.core:jackson-databind:2.18.3'
+
+	implementation 'com.flexvertex.messaging:com.flexvertex.messaging-client:0.2.+'
+	implementation 'com.flexvertex.messaging:com.flexvertex.messaging-shared:0.2.+'
+	implementation 'com.flexvertex.messaging:com.flexvertex.messaging-service:0.1.+'
+
+	implementation 'com.flexvertex.security:com.flexvertex.security-shared:0.1.+'
+
+	implementation 'com.flexvertex.universe:com.flexvertex.universe-commons:0.2.+'
+	implementation 'com.flexvertex.universe:com.flexvertex.universe-components:0.2.+'
+
+	implementation 'com.flexvertex.multiverse:com.flexvertex.multiverse-client:0.2.+'
+	implementation 'com.flexvertex.multiverse:com.flexvertex.multiverse-shared:0.2.+'
+
+	implementation 'io.netty:netty-all:4.1.108.Final'
+
+	implementation 'commons-io:commons-io:2.18.0'
+
+	implementation 'org.apache.logging.log4j:log4j-api:2.24.3'
+	implementation 'org.apache.logging.log4j:log4j-core:2.24.3'
+}
+
+// Builds an executable jar (with the help of com.github.johnrengelman.shadow).
+jar {
+	duplicatesStrategy(DuplicatesStrategy.EXCLUDE)
+	
+	manifest {
+		// Multi-Release attribute is to remove this warning: WARNING: sun.reflect.Reflection.getCallerClass is not supported. This will impact performance.
+		attributes "Main-Class": "com.flexvertex.demo.FlexJavaClientExample", 'Multi-Release': 'true'
+	}
+ 
+	from {
+		configurations.compileClasspath.collect { it.isDirectory() ? it : zipTree(it) }
+	}
+
+	manifest.attributes('Multi-Release': 'true')
+	
+	doLast { println "Making The Jar..." }
+}
+
+// Just copies the jar from build/libs into the project directory.
+task copyJar(type: Copy) {
+	doNotTrackState('')
+	from jar
+	into "."
+}
+
+// Tells the execution phase of build to copy the jar as the last step.
+build.finalizedBy copyJar
+
+// Just a convenience task (gradle run) which is the same as java -jar build/libs/APITest-1.0.0.jar
+task run(type: JavaExec)
+{
+	classpath = files(tasks.jar)
+}

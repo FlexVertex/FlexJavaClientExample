@@ -1,0 +1,5 @@
+gradle.ext.repoUN = 'public'
+gradle.ext.repoPW = '<password>'
+gradle.ext.urlFV = 'https://repo.flexvertex.com/repository/FlexVertex'
+gradle.ext.urlTP = 'https://repo.flexvertex.com/repository/ThirdParty'
+
